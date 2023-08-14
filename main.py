@@ -3,7 +3,7 @@ from pysat.solvers import Solver
 from itertools import combinations
 import sys
 import copy
-
+import time
     
 class Matrix():
     def __init__(self, matrix):
@@ -45,6 +45,14 @@ class Matrix():
             dy = column + self.__dy[i]
             if (self.isInside(dx, dy) == True and self.__matrix[dx][dy] == 0):
                 result.append(self.mapping(dx, dy))
+        return result
+    
+    def convertToMatrix(self, arr):
+        result = copy.deepcopy(self.__matrix)
+        for i in range(len(arr)):
+            x, y = self.remapping(abs(arr[i]))
+            if (arr[i] > 0):
+                result[x][y] = -1
         return result
 
 class CNFs():
@@ -91,11 +99,7 @@ class CNFs():
         cnf = CNF(from_clauses=self.__clauses)
 
         with Solver(bootstrap_with=cnf) as solver:
-            if (solver.solve(assumptions=[])):
-                print("SAT")
-            else:
-                print("UNSAT")
-               
+            solver.solve(assumptions=[])
             return solver.get_model()
 
 class BackTracking():
@@ -103,7 +107,7 @@ class BackTracking():
         self.__matrix = matrix
         self.__dx = [-1, -1, -1, 0, 0, 1, 1, 1]
         self.__dy = [-1, 0, 1, -1, 1, -1, 0, 1]
-        
+
     def isInside(self, row, column):
         if (row < 0 or column < 0 or row >= len(self.__matrix) or column >= len( self.__matrix[0])):
             return False
@@ -264,32 +268,72 @@ class newAlgorithms():
                     self.__dataset[i][j] = result[i][j]
         
         if (self.isDone() == True):
-            print("SAT")
-            print(self.__dataset)
-            return
+            
+            return self.__dataset
         else:
-            print("UNSAT")
             return
 
+def readFile(fileName):
+    matrix = []
+    with open(fileName, 'r') as file:
+        line = file.readline()
+        while (line != ''):
+            items = line.strip().split(', ')
+            matrix.append([int(item) for item in items])
+            line = file.readline()
 
+        file.close()
+    return matrix
+
+def writeFile(fileName, result):
+    with open(fileName, 'w') as file:
+        for i in range(len(result)):
+            line = ", ".join(str(item) for item in result[i])
+            if (i < len(result) - 1):
+                line = line + "\n"
+            file.write(line)
 
 if (__name__ == "__main__"):
     sys.setrecursionlimit(1000000000)
-    matrix = [[0, 0, 0, 0], [3, 3, 2, 0], [1, 0, 0, 0]]
-    
+    fileName = input("Input file name: ")
+    matrix = readFile(fileName)
+
+    cnfBegin = time.time()
     cnf = CNFs(copy.deepcopy(matrix))
     clauses = cnf.getClauses()
     result = cnf.run()
-    print(result)
+    cnfEnd = time.time()
+    result = Matrix(matrix).convertToMatrix(result)
+    fileName = fileName.replace('input', 'output')
+
+    writeFile(fileName, result)
+
+    print("Generate CNFs automatically: ", clauses)
+    print("CNFs Algorithms: ",result)
+    print("CNFs time running: ", round(cnfEnd - cnfBegin, 10), 'ms\n')
 
     newAgl = newAlgorithms(copy.deepcopy(matrix))
-    newAgl.run()
+    newAglBegin = time.time()
+    newResult = newAgl.run()
+    newAglEnd = time.time()
+    print("4. Algorithms solve minesweeper")
+    print("result: ", newResult)
+    print("Algorithms time running: ", newAglEnd - newAglBegin, 'ms\n')
 
     backTracking = BackTracking(copy.deepcopy(matrix))
+    backTrackingBegin = time.time()
     resultBackTracking = backTracking.run(0, -1)
-    print(resultBackTracking)
+    backTrackingEnd = time.time()
+    print("BackTracking")
+    print("result: ", resultBackTracking)
+    print("Back Tracking time running: ", round(backTrackingEnd - backTrackingBegin, 10), 'ms\n')
 
 
     bruteForce = BruteForce(copy.deepcopy(matrix))
+    bruteForceBegin = time.time()
     resultBruteForce = bruteForce.run(0, 0)
+    bruteForceEnd = time.time()
+    print("Brute-Force")
+    print("result: ", resultBackTracking)
+    print("rute-Force time running: ", round(bruteForceEnd - bruteForceBegin, 10), 'ms\n')
     print(resultBruteForce)
