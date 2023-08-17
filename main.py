@@ -268,10 +268,8 @@ class newAlgorithms():
                     self.__dataset[i][j] = result[i][j]
         
         if (self.isDone() == True):
-            
             return self.__dataset
-        else:
-            return
+        
 
 def readFile(fileName):
     matrix = []
@@ -288,7 +286,7 @@ def readFile(fileName):
 def writeFile(fileName, result):
     with open(fileName, 'w') as file:
         for i in range(len(result)):
-            line = ", ".join(str(item) for item in result[i])
+            line = ", ".join(str(item) if item >= 0 else 'X' for item in result[i])
             if (i < len(result) - 1):
                 line = line + "\n"
             file.write(line)
@@ -310,7 +308,7 @@ if (__name__ == "__main__"):
 
     print("Generate CNFs automatically: ", clauses)
     print("CNFs Algorithms: ",result)
-    print("CNFs time running: ", round(cnfEnd - cnfBegin, 10), 'ms\n')
+    print("CNFs time running: ", round(cnfEnd - cnfBegin, 10), 's\n')
 
     newAgl = newAlgorithms(copy.deepcopy(matrix))
     newAglBegin = time.time()
@@ -318,7 +316,7 @@ if (__name__ == "__main__"):
     newAglEnd = time.time()
     print("4. Algorithms solve minesweeper")
     print("result: ", newResult)
-    print("Algorithms time running: ", newAglEnd - newAglBegin, 'ms\n')
+    print("Algorithms time running: ", newAglEnd - newAglBegin, 's\n')
 
     backTracking = BackTracking(copy.deepcopy(matrix))
     backTrackingBegin = time.time()
@@ -326,7 +324,7 @@ if (__name__ == "__main__"):
     backTrackingEnd = time.time()
     print("BackTracking")
     print("result: ", resultBackTracking)
-    print("Back Tracking time running: ", round(backTrackingEnd - backTrackingBegin, 10), 'ms\n')
+    print("Back Tracking time running: ", round(backTrackingEnd - backTrackingBegin, 10), 's\n')
 
 
     bruteForce = BruteForce(copy.deepcopy(matrix))
